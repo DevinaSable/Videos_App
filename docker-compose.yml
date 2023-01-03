@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/app
+    image: app:app_image
+    container_name: app_container
+    command: python manage.py runserver 0.0.0.0:8000
+    depends_on:
+      - db
+  db:
+    image: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=vitube
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Devaa@231
+    container_name: postgres_db
+
+- name: Build and push Docker images
+  uses: docker/build-push-action@v3.2.0

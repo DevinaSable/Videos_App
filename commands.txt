@@ -1,0 +1,6 @@
+docker-compose build
+docker-compose run --rm app django-admin startproject core .
+docker-compose up
+docker exec -it app_container //bin/sh
+#python manage.py migrate
+#python manage.py createsuperuser (admin/admin)

@@ -1,0 +1,10 @@
+Django>=3.2.8,<3.3
+djangorestframework>=3.12.4,<3.13
+psycopg2-binary>=2.8,<2.9.5
+django-rest-authtoken>=2.1,<2.1.4
+dj-rest-auth>=2.2,<2.2.5
+django-allauth>=0.51.0
+djangorestframework-simplejwt>=5.2,<5.2.2
+Faker>=10,<15.3.4
+django-silk==0.5.2
+django-rest-swagger==2.2.0
