@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.core.validators import FileExtensionValidator
 from django.db.models import Q
+from django.urls import reverse
 from django.contrib.auth.models import AbstractUser
 
 
@@ -11,19 +12,16 @@ User = settings.AUTH_USER_MODEL
 class VideoQuerySet(models.QuerySet):
 
     def search(self, query, user = None):
-        lookup = (Q(name__icontains=query) |
-            Q(description__icontains=query) |
-            Q(category__icontains=query) |
-            Q(tags__icontains=query))
-        qs =  self.filter(lookup)
+        lookup = (Q(name__icontains=query) | Q(description__icontains=query) | Q(category__icontains=query) | Q(tags__icontains=query))
+        qs = self.filter(lookup)
         if user is not None:
-            qs2 = self.filter(user = user).filter(lookup)
+            qs2 = self.filter(user=user).filter(lookup)
             qs = (qs | qs2).distinct()
         return qs
 
 
 class VideoManager(models.Manager):
-    def get_queryset(self, *agrs, **kwargs):
+    def get_queryset(self, *args, **kwargs):
         return VideoQuerySet(self.model, using=self.db)
 
     def search(self, query, user=None):
@@ -55,14 +53,14 @@ class Video(models.Model):
         (INSPIRATIONAL, 'Inspirational')
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null = True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     video = models.FileField("Upload your video",
                              blank=False,
                              null=False,
                              validators=[FileExtensionValidator(allowed_extensions=["mp4", "mov", "wmv"])])
     name = models.CharField(max_length=200, null=False)
     description = models.TextField(blank=True, null=True)
-    category = models.CharField(max_length=20, choices=categories, default='Song')
+    category = models.CharField(max_length=20, choices=categories, default=SONG)
     tags = models.CharField(max_length=400, null=True, blank=True, help_text='Use commas to separate text')
     upload_date = models.DateTimeField(auto_now_add=True, auto_now=False, blank=True)
     likes_count = models.IntegerField(default=0)
@@ -82,6 +80,7 @@ class Video(models.Model):
 
     def get_absolute_url(self, *args, **kwargs):
         return f"api/videos/{self.user}/{self.pk}/"
+        # return reverse('video-detail', kwargs= {pk.self.pk})
 
     # def get_absolute_url(self):
     #     return reverse('post-detail', kwargs={'pk': self.pk})

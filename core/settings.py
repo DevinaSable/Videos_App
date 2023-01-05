@@ -69,6 +69,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'libraries':{
+                'staticfiles': 'django.templatetags.static',
+            }
         },
     },
 ]
@@ -135,13 +138,13 @@ STATIC_ROOT = os.path.join(BASE_DIR, "static")
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR,"media")
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 REST_FRAMEWORK = {
 
-    'DEFAULT_PERMISSION_CLASSES': [
+    'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
-    ],
+    ),
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'dj_rest_auth.jwt_auth.JWTCookieAuthentication',
@@ -149,6 +152,8 @@ REST_FRAMEWORK = {
 
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 10,
+
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
 }
 
 AUTHENTICATION_BACKENDS = (
@@ -170,7 +175,7 @@ ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
 LOGIN_URL = '/accounts/login'
 LOGIN_REDIRECT_URL = '/api/videos/<username>/'
-LOGOUT_REDIRECT_URL= '/accounts/login'
+LOGOUT_REDIRECT_URL = '/accounts/login'
 
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -180,28 +185,7 @@ EMAIL_HOST_USER = 'digitaldevd@gmail.com'
 EMAIL_HOST_PASSWORD = 'ctrndfujayrgyjry'
 EMAIL_PORT = 587
 
-
-REST_FRAMEWORK = { 'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema' }
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-            'libraries' : {
-                'staticfiles': 'django.templatetags.static',
-            }
-        },
-    },
-]
-
-SESSIONS_ENGINE='django.contrib.sessions.backends.cache'
+SESSIONS_ENGINE = 'django.contrib.sessions.backends.cache'
 
 CACHES = {
     'default': {

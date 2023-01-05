@@ -2,8 +2,11 @@ from .models import Video, Like
 from rest_framework.generics import ListAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView, ListCreateAPIView
 from .serializers import VideoSerializer, LikeSerializer, VideoListSerializer
 from rest_framework import permissions
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.views import APIView
 from .permissions import IsOwnerOrReadOnly
-from django.db.models import Q
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 
 
 
@@ -52,26 +55,65 @@ class VideoDetail(RetrieveUpdateDestroyAPIView):
     #     qs =super.
 
 
-class LikeView(ListAPIView):
-    queryset = Like.objects.all()
-    serializer_class = LikeSerializer
+class LikeView(APIView):
+    # serializer_class = LikeSerializer
+    # permission_classes = [permissions.IsAuthenticated]
+    # queryset = Like.objects.all()
     permission_classes = [permissions.IsAuthenticated]
+
+
+    def get_object(self, pk):
+        try:
+            return Video.objects.get(pk=pk)
+        except Video.DoesNotExist:
+            return None
+
+    def post(self, pk, request, *args, **kwargs):
+        video = self.get_object(pk)
+        if video is None:
+            return Response({"error : Video not found"}, status = status.HTTP_404_NOT_FOUND)
+
+        like_user = video.likes.all().values_list('user', flat=True)
+        if request.user.id in like_user:
+            video.likes_count -= 1
+            video.likes.filter(user=request.user).delete()
+        else:
+            video.likes_count +=1
+            like = Like(user=request.user, video=video)
+            like.save()
+        video.save()
+        serializer = VideoSerializer(video)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 class SearchVideoList(ListAPIView):
     model = Video
     context_object_name = "Videos"
-    queryset = Video.objects.all()
-    serializer_class = VideoSerializer, VideoListSerializer
+    serializer_class = VideoSerializer
 
+    def get_queryset(self):
+        query = self.request.GET.get("q")
+        search_vector = SearchVector("name", "description", "category", "tags", "video")
+        search_query = SearchQuery(query)
+        return(
+            Video.objects.annotate(
+                search=search_vector, rank=SearchRank(search_vector, search_query)
+            )
+            .filter(search=search_query)
+            .order_by("-rank")
+        )
 
-    def get_queryset(self, *args, **kwargs):
-        qs = super().get_queryset(*args, **kwargs)
-        q = self.request.GET.get('q')
-        results = Video.obects.none()
-        if q is not None:
-            user = None
-            if self.request.user.is_authenticated:
-                 user = self.request.user
-        results = qs.search(q, user=user)
-        return results
+    # queryset = Video.objects.all()
+    #
+    #
+    # def get_queryset(self, *args, **kwargs):
+    #     qs = super().get_queryset()
+    #     q = self.request.GET.get('q')
+    #     results = Video.objects.none()
+    #     if q is not None:
+    #         user = None
+    #         if self.request.user.is_authenticated:
+    #             user = self.request.user
+    #         results = qs.search(q, user=user)
+    #     return results
